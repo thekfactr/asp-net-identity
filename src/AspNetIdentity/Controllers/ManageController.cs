@@ -9,10 +9,11 @@ using Microsoft.Extensions.Logging;
 using AspNetIdentity.Models;
 using AspNetIdentity.Models.ManageViewModels;
 using AspNetIdentity.Services;
+using System.Security.Claims;
 
 namespace AspNetIdentity.Controllers
 {
-    [Authorize]
+    [Authorize(Policy = "Administrators")]
     public class ManageController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -54,13 +55,27 @@ namespace AspNetIdentity.Controllers
             {
                 return View("Error");
             }
+
+            var country = ((ClaimsIdentity)User.Identity).FindFirst(ClaimTypes.Country);
+            var dob = ((ClaimsIdentity)User.Identity).FindFirst(ClaimTypes.DateOfBirth);
+            var status = string.Empty;
+            if (country != null)
+            {
+                status = "Has the country claim.";
+            }
+            if (dob != null)
+            {
+                status += " Has the date of birth claim";
+            }
+
             var model = new IndexViewModel
             {
                 HasPassword = await _userManager.HasPasswordAsync(user),
                 PhoneNumber = await _userManager.GetPhoneNumberAsync(user),
                 TwoFactor = await _userManager.GetTwoFactorEnabledAsync(user),
                 Logins = await _userManager.GetLoginsAsync(user),
-                BrowserRemembered = await _signInManager.IsTwoFactorClientRememberedAsync(user)
+                BrowserRemembered = await _signInManager.IsTwoFactorClientRememberedAsync(user),
+                Status = status
             };
             return View(model);
         }

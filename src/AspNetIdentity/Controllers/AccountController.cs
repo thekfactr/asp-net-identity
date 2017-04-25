@@ -57,9 +57,16 @@ namespace AspNetIdentity.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+
+                var currentClaims = await _userManager.GetClaimsAsync(user);
+
+                if (!currentClaims.Any(c => c.Type == ClaimTypes.DateOfBirth))
+                    await _userManager.AddClaimAsync(user, new Claim(ClaimTypes.DateOfBirth, "06/06/1999"));
+
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+                var result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation(1, "User logged in.");
@@ -109,6 +116,9 @@ namespace AspNetIdentity.Controllers
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
+                    await _userManager.AddClaimAsync(user, new Claim(ClaimTypes.Role, "Admin"));
+                    await _userManager.AddClaimAsync(user, new Claim(ClaimTypes.Country, "US"));
+
                     // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=532713
                     // Send an email with this link
                     //var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);

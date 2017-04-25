@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using AspNetIdentity.Data;
 using AspNetIdentity.Models;
 using AspNetIdentity.Services;
+using System.Security.Claims;
 
 namespace AspNetIdentity
 {
@@ -48,6 +49,12 @@ namespace AspNetIdentity
                 .AddDefaultTokenProviders();
 
             services.AddMvc();
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("Administrators", policy => policy.RequireClaim(ClaimTypes.Role, "Admin"));
+                options.AddPolicy("Managers", policy => policy.RequireClaim(ClaimTypes.Role, "Manager"));
+            });
 
             // Add application services.
             services.AddTransient<IEmailSender, AuthMessageSender>();

@@ -17,5 +17,7 @@ namespace AspNetIdentity.Models.ManageViewModels
         public bool TwoFactor { get; set; }
 
         public bool BrowserRemembered { get; set; }
+
+        public string Status { get; set; }
     }
 }
